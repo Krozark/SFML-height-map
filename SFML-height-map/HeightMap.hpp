@@ -15,8 +15,8 @@ namespace height_map
             HeightMap& operator=(const HeightMap&) = delete;
 
 
-            bool loadFromFile(const std::string& filename);
-            bool loadFromImage(const sf::Image& image);
+            bool loadFromFile(const std::string& filename,const std::string& gradient_name);
+            bool loadFromImage(const sf::Image& image,const sf::Image& gradient);
 
             void setPrecision(const unsigned int& precistion=1);
 
@@ -24,16 +24,13 @@ namespace height_map
         
 
         private:
-            void compile();
+            void compile(unsigned char* data,unsigned char gradient[255][3]);
 
-            unsigned char* data;
-            unsigned char gradient[256];
             unsigned int precision;
             unsigned int height,
                          width;
 
             GLuint gl_list_id;
-
 
     };
 }
