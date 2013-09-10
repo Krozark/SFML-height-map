@@ -3,21 +3,21 @@
 namespace height_map
 {
 
-    HeightMap::HeightMap() : sf::Drawable(), data(0), precision(0), height(0), width(0)
+    HeightMap::HeightMap() : sf::Drawable(), data(0), precision(1), height(0), width(0)
     {
     }
 
-    bool HeightMap::loadFromFile(const std::string& filename, const sf::IntRect& area)
+    bool HeightMap::loadFromFile(const std::string& filename)
     {
         sf::Image image;
 
         if ( !image.loadFromFile(filename))
             return false;
 
-        return loadFromImage(image,area);
+        return loadFromImage(image);
     }
 
-    bool HeightMap::loadFromImage(const sf::Image& image,const sf::IntRect& area)
+    bool HeightMap::loadFromImage(const sf::Image& image)
     {
         // La taille totale du tableau renvoyé par GetPixelsPtr()
         height = image.getSize().x;
@@ -72,6 +72,12 @@ namespace height_map
 
     void HeightMap::draw(sf::RenderTarget &target,sf::RenderStates states) const
     {
+        //glClear          ( GL_DEPTH_BUFFER_BIT ); // Réinitialisation z-buffer
+        //camera_.focus    (                     ); // gluLookAt
+        glScalef(1.f,0.15f,1.f); // Diminution du rapport de hauteur
+        //glEnable         ( GL_TEXTURE_2D       ); // Activation du texturing
+        //texture_main.Bind(                     ); // Sélection de la texture principale
+        glCallList       (gl_list_id); // Appel de la display list
     }
 
     void HeightMap::compile()
@@ -92,32 +98,36 @@ namespace height_map
                 for ( unsigned int x=0; x<(height-precision); x+=precision)
                 {
                     // Pour chaque colonne, avec un pas dépendant de la précision souhaitée
-                    for ( unsigned int z=0; z<(width-precision); z+=precision)
+                    for ( unsigned int y=0; y<(width-precision); y+=precision)
                     {
                         // Définition des coordonnées des points
                         Point3D<GLfloat> vertex1( x,
-                                                  HEIGHTMAP_GET_PIXEL( x, z ),
-                                                  z,
-                                                  x/width,
-                                                  1.f-(z/height));
+                                                  HEIGHTMAP_GET_PIXEL( x, y ),
+                                                  y,
+                                                  0,
+                                                  HEIGHTMAP_GET_PIXEL(x,y)
+                                                  );
 
                         Point3D<GLfloat> vertex2( precision+x,
-                                                  HEIGHTMAP_GET_PIXEL(precision+x, z ),
-                                                  z,
-                                                  (x+precision)/width,
-                                                  1.f-(z/height));
+                                                  HEIGHTMAP_GET_PIXEL(precision+x, y ),
+                                                  y,
+                                                  0,
+                                                  HEIGHTMAP_GET_PIXEL(precision+x,y)
+                                                  );
 
                         Point3D<GLfloat> vertex3( precision+x,
-                                                  HEIGHTMAP_GET_PIXEL(precision+x, precision+z ),
-                                                  precision+z,
-                                                  (x+precision)/width,
-                                                  1.f-((z+precision)/height) );
+                                                  HEIGHTMAP_GET_PIXEL(precision+x, precision+y),
+                                                  precision+y,
+                                                  0,
+                                                  HEIGHTMAP_GET_PIXEL(precision+x,precision+y)
+                                                  );
 
                         Point3D<GLfloat> vertex4( x,
-                                                  HEIGHTMAP_GET_PIXEL( x, precision+z ),
-                                                  precision+z,
-                                                  (x)/(float)width,
-                                                  1.f-((z+precision)/height));
+                                                  HEIGHTMAP_GET_PIXEL( x, precision+y ),
+                                                  precision+y,
+                                                  0,
+                                                  HEIGHTMAP_GET_PIXEL(x,precision+y)
+                                                  );
 
                         // Premier triangle
                         vertex3.sendWithText();

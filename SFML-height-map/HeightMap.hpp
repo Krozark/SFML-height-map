@@ -10,13 +10,13 @@ namespace height_map
     class HeightMap : public sf::Drawable
     {
         public:
-            HeightMap();
+            explicit HeightMap();
             HeightMap(const HeightMap&) = delete;
             HeightMap& operator=(const HeightMap&) = delete;
 
 
-            bool loadFromFile(const std::string& filename, const sf::IntRect& area=sf::IntRect());
-            bool loadFromImage(const sf::Image& image, const sf::IntRect& area=sf::IntRect());
+            bool loadFromFile(const std::string& filename);
+            bool loadFromImage(const sf::Image& image);
 
             void setPrecision(const unsigned int& precistion=1);
 
