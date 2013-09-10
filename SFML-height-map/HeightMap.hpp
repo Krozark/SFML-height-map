@@ -22,7 +22,7 @@ namespace height_map
         
 
         private:
-            bool compile();
+            void compile();
 
             const unsigned char getPixel(const unsigned int x,const unsigned y);
 

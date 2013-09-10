@@ -1,6 +1,6 @@
 export CC = g++
-INCPATH = 
-LIBS =
+INCPATH = -I$(CURDIR) 
+LIBS = -lsfml-graphics
 #-lpthread 
 #-lmysqlcppconn 
 export DEFINES = 

@@ -40,10 +40,12 @@ namespace height_map
         for ( int i=0; i<size/elemSize; ++i )
             data[i] = px[i*elemSize];
 
+        compile();
+
         return true;
     }
 
-    bool HeightMap::compile()
+    void HeightMap::compile()
     {
         unsigned int width ( image.GetWidth () );
         unsigned int height( image.GetHeight() );
