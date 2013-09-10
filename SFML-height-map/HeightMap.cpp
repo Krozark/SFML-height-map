@@ -2,9 +2,8 @@
 
 namespace height_map
 {
-    #define HEIGHTMAP_GET_PIXEL(x,y,height) data[y*height+x]
 
-    HeightMap::HeightMap() : data(0), precistion(0)
+    HeightMap::HeightMap() : sf::Drawable(), data(0), precision(0), height(0), width(0)
     {
     }
 
@@ -12,7 +11,7 @@ namespace height_map
     {
         sf::Image image;
 
-        if ( !image.LoadFromFile(filename))
+        if ( !image.loadFromFile(filename))
             return false;
 
         return loadFromImage(image,area);
@@ -20,36 +19,64 @@ namespace height_map
 
     bool HeightMap::loadFromImage(const sf::Image& image,const sf::IntRect& area)
     {
-        // Assignations
-
-        // Le tableau renvoyé par GetPixelsPtr() contient les 4 composantes RGBA
-        // sous forme de char
-        static const int elemSize = 4;
-
         // La taille totale du tableau renvoyé par GetPixelsPtr()
-        const int size = image.GetWidth() * image.GetHeight() * 4;
+        height = image.getSize().x;
+        width = image.getSize().y;
+
+        const int size = height * width;
 
         // Création de notre propre tableau qui ne contiendra qu'une composante (noir et blanc)
-        data = new unsigned char[size/elemSize];
+        data = new unsigned char[size];
 
         // On stocke un pointeur vers le tableau renvoyé par GetPixelsPtr() pour y accéder plus
         // simplement
-        const unsigned char* const px = image.GetPixelsPtr();
+        const unsigned char* const px = image.getPixelsPtr();
 
         // On copie les pixels
-        for ( int i=0; i<size/elemSize; ++i )
-            data[i] = px[i*elemSize];
+        for ( int i=0; i<size;i+=4 )
+            data[i] = px[i];
 
         compile();
 
         return true;
     }
 
+    #define HEIGHTMAP_GET_PIXEL(x,y) data[y*height+x]
+/*
+    template <class T>
+    class Point3D
+    {
+        public:
+            Point3D ( T mx=0, T my=0, T mz=0, float mtx=0, float mty=0 ): x ( mx  ),y ( my  ),z ( mz  ),tx( mtx ),ty( mty ){}
+
+            void send( void ) const
+            {
+                glVertex3f( static_cast<float>(x),
+                            static_cast<float>(y),
+                            static_cast<float>(z) );
+            }
+
+            void sendWithText( void ) const
+            {
+                glTexCoord2f( tx, ty );
+                glVertex3f( static_cast<float>(x),
+                            static_cast<float>(y),
+                            static_cast<float>(z) );
+            }
+
+        public:
+            T x,y,z;
+
+            float tx;
+            float ty;
+    };
+*/
+    void HeightMap::draw(sf::RenderTarget &target,sf::RenderStates states) const
+    {
+    }
+
     void HeightMap::compile()
     {
-        unsigned int width ( image.GetWidth () );
-        unsigned int height( image.GetHeight() );
-        
         // Génération d'un identifiant pour notre display list
         gl_list_id = glGenLists( 1 );
 
@@ -69,11 +96,11 @@ namespace height_map
                     for ( unsigned int z=0; z<(width-precision); z+=precision)
                     {
                         // Définition des coordonnées des points
-                        Point3D<GLfloat> vertex1( x,
+                        /*Point3D<GLfloat> vertex1( x,
                                                   HEIGHTMAP_GET_PIXEL( x, z ),
                                                   z,
                                                   x/width,
-                                                  1.f-(z/height);
+                                                  1.f-(z/height));
 
                         Point3D<GLfloat> vertex2( precision+x,
                                                   HEIGHTMAP_GET_PIXEL(precision+x, z ),
@@ -102,6 +129,7 @@ namespace height_map
                         vertex4.sendWithText();
                         vertex3.sendWithText();
                         vertex1.sendWithText();
+                        */
                     }
                 }
             }
@@ -109,7 +137,4 @@ namespace height_map
         }
         glEndList();
     }
-
-
-
 }

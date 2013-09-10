@@ -9,7 +9,7 @@ all: main.exe
 	@cp $@ "$(OBJ_DIR)"
 
 
-main.exe:
+main.exe: main.cpp HeightMap.hpp HeightMap.o
 	$(CC) $^ $(FLAGS) -o $@
 
 
