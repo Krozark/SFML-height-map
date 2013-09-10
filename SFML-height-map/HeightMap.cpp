@@ -5,8 +5,14 @@
 namespace height_map
 {
 
-    HeightMap::HeightMap() : sf::Drawable(), precision(1), height(0), width(0)
+    HeightMap::HeightMap() : sf::Drawable(), precision(1), height(0), width(0), gl_list_id(0)
     {
+    }
+
+    HeightMap::~HeightMap()
+    {
+        if(gl_list_id != 0)
+            glDeleteLists(gl_list_id,1);
     }
 
     bool HeightMap::loadFromFile(const std::string& filename,const std::string& gradient_name)
@@ -69,8 +75,8 @@ namespace height_map
     class Point3D
     {
         public:
-            Point3D ( T mx=0, T my=0, T mz=0,unsigned int _R=0,unsigned int _G=0,unsigned int _B=0):
-                x(mx ),y(my),z(mz),R(_R/255.f),G(_G/255.f),B(_B/255.f)
+            Point3D ( T mx=0, T my=0, T mz=0):
+                x(mx ),y(my),z(mz)
         {
             //std::cout<<"<"<<x<<","<<y<<","<<z<<": "<<R<<","<<G<<","<<B<<">"<<std::endl;
         }
@@ -79,29 +85,19 @@ namespace height_map
             {
                 glVertex3f(static_cast<float>(x),static_cast<float>(y),static_cast<float>(z));
             }
-
-            void toGlColored() const
-            {
-                glColor3f(R,G,B);
-                glVertex3f( static_cast<float>(x),static_cast<float>(y),static_cast<float>(z));
-
-                std::cout<<"glColor3f("<<R<<","<<G<<","<<B<<");\nglVertex3f("<<x<<","<<y<<","<<z<<");"<<std::endl;
-            }
-
         public:
             T x,y,z;
-            float R,G,B;
     };
 
     void HeightMap::draw(sf::RenderTarget &target,sf::RenderStates states) const
     {
-        //glClear          ( GL_DEPTH_BUFFER_BIT ); // Réinitialisation z-buffer
+        glClear(GL_DEPTH_BUFFER_BIT); // Réinitialisation z-buffer
         //camera_.focus    (                     ); // gluLookAt
         //glLoadIdentity();                                   // Réinitialisation de la matrice Current Modelview
         //glScalef(1.f,0.15f,1.f); // Diminution du rapport de hauteur
         //texture_main.Bind(                     ); // Sélection de la texture principale
 
-        glCallList       (gl_list_id); // Appel de la display list
+        glCallList(gl_list_id); // Appel de la display list
     }
 
     void HeightMap::compile(unsigned char* data,unsigned char gradient[255][3])
@@ -117,30 +113,27 @@ namespace height_map
                     for (int z=0; z<(width-precision); z+=precision)
                     {
                         unsigned int y1 = HEIGHTMAP_GET_PIXEL(x,z);
-                        Point3D<GLfloat> vertex1(x,-z,0,
-                                                 gradient[y1][0],gradient[y1][1],gradient[y1][2]);
+                        Point3D<GLfloat> vertex1(x,-1.f*z,0);
 
                         unsigned int y2 = HEIGHTMAP_GET_PIXEL(precision+x,z);
-                        Point3D<GLfloat> vertex2(precision+x,-z,0,
-                                                 gradient[y1][0],gradient[y2][1],gradient[y2][2]);
+                        Point3D<GLfloat> vertex2(precision+x,-1.f*z,0);
 
                         unsigned int y3 = HEIGHTMAP_GET_PIXEL(precision+x,precision+z);
-                        Point3D<GLfloat> vertex3(precision+x,-(precision+z),0,
-                                                 gradient[y3][0],gradient[y3][1],gradient[y3][2]);
+                        Point3D<GLfloat> vertex3(precision+x,-1.f*(precision+z),0);
 
                         unsigned int y4 = HEIGHTMAP_GET_PIXEL(x,precision+z);
-                        Point3D<GLfloat> vertex4(x,-(precision+z),0,
-                                                 gradient[y4][0],gradient[y4][1],gradient[y4][2]);
+                        Point3D<GLfloat> vertex4(x,-1.f*(precision+z),0);
 
                         // Premier triangle
-                        vertex3.toGlColored();
-                        vertex2.toGlColored();
-                        vertex1.toGlColored();
+                        glColor3f(gradient[y1][0],gradient[y1][1],gradient[y1][2]);
+                        std::cout<<y1<<" "<<int(gradient[y1][0])<<" "<<int(gradient[y1][1])<<" "<<int(gradient[y1][2])<<std::endl;
+                        vertex3.toGl();
+                        vertex2.toGl();
+                        vertex1.toGl();
 
-                        // DeuxitoGlColored
-                        vertex4.toGlColored();
-                        vertex3.toGlColored();
-                        vertex1.toGlColored();
+                        vertex4.toGl();
+                        vertex3.toGl();
+                        vertex1.toGl();
                     }
                 }
             }

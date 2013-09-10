@@ -1,50 +1,48 @@
 #include "FreeFlyCamera.hpp"
 
 #include <cmath>
-//#include <GL/glu.h>
 
 
 
 sf::Vector2i old_Pos;
 
-FreeFlyCamera::FreeFlyCamera(const sf::vector3<float> & position)
+FreeFlyCamera::FreeFlyCamera(const sf::Vector3<float> & pos)
 {
-    Position = position;
+    position = pos;
     old_Pos = sf::Mouse::getPosition();
-    Avent = sf::vector3<float>(0.0,0.0,0.0);
-    //Cible_vision = sf::vector3<float>(position[0]-1,position[1]+0.01,position[2]-0.01);
+    before = sf::Vector3<float>(0.0,0.0,0.0);
+    //Cible_vision = sf::Vector3<float>(position[0]-1,position[1]+0.01,position[2]-0.01);
     //Cible_vision = position;
     Phi = 0;
     Theta = 0;
-    VectorsFromAngles();
+    vectorsFromAngles();
 
-    Speed = 50;
-    Sensibilitee_souris = 0.8;
+    speed = 50;
+    sensitivityMouse = 0.8;
     _verticalMotionActive = false;
-    KeyConf["forward"] = sf::Keyboard::Up;
-    KeyConf["backward"] = sf::Keyboard::Down;
-    KeyConf["strafe_left"] = sf::Keyboard::Left;
-    KeyConf["strafe_right"] = sf::Keyboard::Right;
-    KeyConf["boost"] = sf::Keyboard::LShift;
-
+    keyConf["forward"] = sf::Keyboard::Up;
+    keyConf["backward"] = sf::Keyboard::Down;
+    keyConf["strafe_left"] = sf::Keyboard::Left;
+    keyConf["strafe_right"] = sf::Keyboard::Right;
+    keyConf["boost"] = sf::Keyboard::LShift;
 
     /*SDL_WM_GrabInput(SDL_GRAB_ON);
     SDL_ShowCursor(SDL_DISABLE);*/
 }
 
-void FreeFlyCamera::MouseMoved()
+void FreeFlyCamera::mouseMoved()
 {
-    sf::Vector2i Pos =sf::Mouse::getPosition();
+    sf::Vector2i pos =sf::Mouse::getPosition();
 
-    Theta += (Pos.x - old_Pos.x) *Sensibilitee_souris;
-    Phi -= (Pos.y - old_Pos.y)*Sensibilitee_souris;
-    //Cible_vision = Position + Avent;
+    Theta += (pos.x - old_Pos.x) *sensitivityMouse;
+    Phi -= (pos.y - old_Pos.y)*sensitivityMouse;
+    //Cible_vision = Position + avant;
 
-    old_Pos = Pos;
-    VectorsFromAngles();
+    old_Pos = pos;
+    vectorsFromAngles();
 }
 
-void FreeFlyCamera::MouseWheelMoved(const sf::Event & event)
+void FreeFlyCamera::mouseWheelMoved(const sf::Event & event)
 {
     if (event.mouseWheel.delta >0) //coup de molette vers le haut
     {
@@ -60,25 +58,48 @@ void FreeFlyCamera::MouseWheelMoved(const sf::Event & event)
     }
 }
 
+template<typename T>
+sf::Vector3<T> operator*(const sf::Vector3<T>& vec,double value)
+{
+    return sf::Vector3<T>(vec.x*value,vec.y*value,vec.z*value);
+}
+
+template<typename T>
+sf::Vector3<T> cross(const sf::Vector3<T>& v1,const sf::Vector3<T>& v2)
+{
+    return sf::Vector3<T>(
+                     v1.y * v2.z - v1.z * v2.y,
+                     v1.z * v2.x - v1.x * v2.z,
+                     v1.x * v2.y - v1.y * v2.x);
+}
+/**@brief Normalize this vector 
+ * x^2 + y^2 + z^2 = 1 */
+//TODO
+/*SIMD_FORCE_INLINE btVector3& normalize() 
+{
+    return *this /= length();
+}*/
+
+
 void FreeFlyCamera::animate(double timestep)
 {
 
-    double realspeed = (sf::Keyboard::isKeyPressed(KeyConf["boost"]))?2*Speed:Speed;
-    if (sf::Keyboard::isKeyPressed(KeyConf["forward"]))
+    double realspeed = (sf::Keyboard::isKeyPressed(keyConf["boost"]))?2*speed:speed;
+    if (sf::Keyboard::isKeyPressed(keyConf["forward"]))
     {
-        Position += Avent * (realspeed * timestep);
+        position += before * (realspeed * timestep);
     }
-    if (sf::Keyboard::isKeyPressed(KeyConf["backward"]))
+    if (sf::Keyboard::isKeyPressed(keyConf["backward"]))
     {
-        Position -= Avent * (realspeed * timestep);
+        position -= before * (realspeed * timestep);
     }
-    if (sf::Keyboard::isKeyPressed(KeyConf["strafe_left"]))
+    if (sf::Keyboard::isKeyPressed(keyConf["strafe_left"]))
     {
-        Position += Droite * (realspeed * timestep);
+        position += right * (realspeed * timestep);
     }
-    if (sf::Keyboard::isKeyPressed(KeyConf["strafe_right"]))
+    if (sf::Keyboard::isKeyPressed(keyConf["strafe_right"]))
     {
-        Position -= Droite * (realspeed * timestep);
+        position -= right * (realspeed * timestep);
     }
 
     if (_verticalMotionActive)
@@ -87,29 +108,30 @@ void FreeFlyCamera::animate(double timestep)
             _verticalMotionActive = false;
         else
             _timeBeforeStoppingVerticalMotion -= timestep;
-        Position += sf::vector3<float>(0,_verticalMotionDirection*realspeed*timestep,0);
+        position += sf::Vector3<float>(0,_verticalMotionDirection*realspeed*timestep,0);
     }
 
-    Cible_vision = Position + Avent;
-
+    target = position + before;
 }
 
-void FreeFlyCamera::VectorsFromAngles()
+
+
+void FreeFlyCamera::vectorsFromAngles()
 {
-    static const sf::vector3<float> up(0,1,0);
+    static const sf::Vector3<float> up(0,1,0);
     if (Phi > 89)
         Phi = 89;
     else if (Phi < -89)
         Phi = -89;
     double r_temp = cos(Phi*M_PI/180);
-    Avent[0] = r_temp*cos(Theta*M_PI/180);
-    Avent[1] = sin(Phi*M_PI/180);
-    Avent[2] = r_temp*sin(Theta*M_PI/180);
+    before.x = r_temp*cos(Theta*M_PI/180);
+    before.y = sin(Phi*M_PI/180);
+    before.z = r_temp*sin(Theta*M_PI/180);
 
-    Droite = up.cross(Avent);
-    Droite.normalize();
+    right = cross(up,before);
+    //TODO Droite.normalize();
 
-    Cible_vision = Position + Avent;
+    target = position + before;
 }
 
 FreeFlyCamera::~FreeFlyCamera()

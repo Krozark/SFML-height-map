@@ -1,6 +1,6 @@
 export CC = g++
 INCPATH = -I$(CURDIR) 
-LIBS = -lsfml-graphics -lsfml-window -lsfml-system -lGL
+LIBS = -lsfml-graphics -lsfml-window -lsfml-system -lGL -lGLU -lGLEW
 #-lpthread 
 #-lmysqlcppconn 
 export DEFINES = 
@@ -11,7 +11,7 @@ export OBJ_DIR = $(TOP)/obj
 SRC = $(wildcard *.c*)
 OBJ = $(SRC:.cpp=.o) $(SRC:*.cpp=.o)
 
-SUBDIRS = SFML-height-map obj
+SUBDIRS = SFML-height-map Camera obj
 
 export EXEC = Height-map
 

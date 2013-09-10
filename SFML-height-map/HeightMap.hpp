@@ -14,6 +14,8 @@ namespace height_map
             HeightMap(const HeightMap&) = delete;
             HeightMap& operator=(const HeightMap&) = delete;
 
+            ~HeightMap();
+
 
             bool loadFromFile(const std::string& filename,const std::string& gradient_name);
             bool loadFromImage(const sf::Image& image,const sf::Image& gradient);
