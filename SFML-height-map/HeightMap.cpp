@@ -42,7 +42,6 @@ namespace height_map
     }
 
     #define HEIGHTMAP_GET_PIXEL(x,y) data[y*height+x]
-/*
     template <class T>
     class Point3D
     {
@@ -70,7 +69,7 @@ namespace height_map
             float tx;
             float ty;
     };
-*/
+
     void HeightMap::draw(sf::RenderTarget &target,sf::RenderStates states) const
     {
     }
@@ -96,7 +95,7 @@ namespace height_map
                     for ( unsigned int z=0; z<(width-precision); z+=precision)
                     {
                         // Définition des coordonnées des points
-                        /*Point3D<GLfloat> vertex1( x,
+                        Point3D<GLfloat> vertex1( x,
                                                   HEIGHTMAP_GET_PIXEL( x, z ),
                                                   z,
                                                   x/width,
@@ -129,7 +128,6 @@ namespace height_map
                         vertex4.sendWithText();
                         vertex3.sendWithText();
                         vertex1.sendWithText();
-                        */
                     }
                 }
             }
